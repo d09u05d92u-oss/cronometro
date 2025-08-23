@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronômetro de Treino</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cor-primaria: #007BFF;
+            --cor-secundaria: #0056b3;
+            --cor-fundo: #121212;
+            --cor-texto: #ffffff;
+            --cor-claro: #f0f0f0;
+            --cor-borda: #333;
+            --cor-destaque: #00bfff;
+            --cor-alerta: #ff4136;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: #1e1e1e;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            border: 1px solid var(--cor-borda);
+            box-sizing: border-box;
+        }
+
+        .header-logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: var(--cor-primaria);
+            font-weight: 700;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 2.2rem;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            width: 90%;
+            max-width: 250px;
+            height: auto;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+
+        .timer-display {
+            font-size: 4rem;
+            font-weight: 700;
+            margin: 20px 0;
+            letter-spacing: 2px;
+            color: var(--cor-destaque);
+            transition: color 0.3s ease;
+        }
+
+        .timer-status {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--cor-claro);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            font-size: 1.1rem;
+            font-weight: 600;
+            background-color: #2a2a2a;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 5px;
+            width: 150px;
+        }
+
+        .stat-label {
+            display: block;
+            font-size: 0.8rem;
+            color: #aaa;
+            text-transform: uppercase;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            background-color: var(--cor-primaria);
+            color: var(--cor-texto);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: var(--cor-secundaria);
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .settings-section {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--cor-borda);
+            text-align: left;
+        }
+
+        .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .settings-item label {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .settings-item select {
+            width: 90px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #2a2a2a;
+            color: var(--cor-texto);
+            text-align: center;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url('data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23fff" width="18px" height="18px"><path d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+        }
+
+        /* Cores de status */
+        .status-prep { color: #FFA500; }
+        .status-work { color: var(--cor-destaque); }
+        .status-rest { color: var(--cor-alerta); }
+        .status-finish { color: #32CD32; }
+
+        /* Animação para o timer */
+        .timer-work-blink {
+            animation: work-blink 1s infinite alternate;
+        }
+
+        @keyframes work-blink {
+            from { color: var(--cor-destaque); }
+            to { color: #fff; }
+        }
+
+        .timer-rest-blink {
+            animation: rest-blink 1s infinite alternate;
+        }
+
+        @keyframes rest-blink {
+            from { color: var(--cor-alerta); }
+            to { color: #fff; }
+        }
+
+        /* Otimizações para dispositivos móveis */
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+            .logo {
+                max-width: 200px;
+            }
+            .timer-display {
+                font-size: 3rem;
+            }
+            .timer-status {
+                font-size: 1.2rem;
+            }
+            button {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-logo">
+        <h1>Cronômetro de Treino</h1>
+        <img src="https://res.cloudinary.com/ddozlstmp/image/upload/v1755888324/S_Menu_z3g6ih.png" alt="Logo" class="logo">
+    </div>
+    
+    <div class="timer-status" id="timer-status">Pronto</div>
+    <div class="timer-display" id="timer-display">00:00</div>
+
+    <div class="stats">
+        <div class="stat-item">
+            <span id="stat-rounds-current">0</span>/<span id="stat-rounds-total">1</span>
+            <span class="stat-label">Rodadas</span>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button id="start-btn">Iniciar</button>
+        <button id="pause-btn" disabled>Pausar</button>
+        <button id="reset-btn">Reiniciar</button>
+    </div>
+
+    <div class="settings-section">
+        <h2>Configurações</h2>
+        <div class="settings-item">
+            <label for="prep-time">Tempo de Preparação (s)</label>
+            <select id="prep-time"></select>
+        </div>
+        <div class="settings-item">
+            <label for="work-time">Tempo de Treino (s)</label>
+            <select id="work-time"></select>
+        </div>
+        <div class="settings-item">
+            <label for="rest-time">Tempo de Descanso (s)</label>
+            <select id="rest-time"></select>
+        </div>
+        <div class="settings-item">
+            <label for="rounds">Número de Rodadas</label>
+            <select id="rounds"></select>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Seletores de elementos
+    const timerDisplay = document.getElementById('timer-display');
+    const timerStatus = document.getElementById('timer-status');
+    const startBtn = document.getElementById('start-btn');
+    const pauseBtn = document.getElementById('pause-btn');
+    const resetBtn = document.getElementById('reset-btn');
+
+    const prepTimeSelect = document.getElementById('prep-time');
+    const workTimeSelect = document.getElementById('work-time');
+    const restTimeSelect = document.getElementById('rest-time');
+    const roundsSelect = document.getElementById('rounds');
+
+    const statRoundsCurrent = document.getElementById('stat-rounds-current');
+    const statRoundsTotal = document.getElementById('stat-rounds-total');
+
+    // Funções para preencher os seletores
+    function populateSelect(selectElement, start, end, defaultValue) {
+        for (let i = start; i <= end; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = i;
+            if (i === defaultValue) {
+                option.selected = true;
+            }
+            selectElement.appendChild(option);
+        }
+    }
+
+    // Preenche os seletores com os valores
+    populateSelect(prepTimeSelect, 0, 999, 10);
+    populateSelect(workTimeSelect, 1, 999, 20);
+    populateSelect(restTimeSelect, 0, 999, 10);
+    populateSelect(roundsSelect, 1, 999, 4);
+    
+    // Variáveis do cronômetro
+    let interval;
+    let isRunning = false;
+    let totalTime;
+    let currentTime;
+    let audioContext;
+
+    // Configurações e estado do treino
+    let settings = {};
+    let currentRound = 0;
+    let currentState;
+
+    const STATES = {
+        PREP: 'prep',
+        WORK: 'work',
+        REST: 'rest',
+        FINISHED: 'finished'
+    };
+    
+    // Funções de áudio
+    function initAudio() {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    function playBeep(frequency, duration) {
+        if (!audioContext) return;
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.type = 'sine';
+        oscillator.frequency.value = frequency;
+        gainNode.gain.value = 0.5;
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.start();
+        setTimeout(() => {
+            oscillator.stop();
+        }, duration);
+    }
+
+    // Funções de controle
+    function updateSettings() {
+        settings = {
+            prep: parseInt(prepTimeSelect.value) || 0,
+            work: parseInt(workTimeSelect.value) || 20,
+            rest: parseInt(restTimeSelect.value) || 10,
+            rounds: parseInt(roundsSelect.value) || 4
+        };
+        statRoundsTotal.textContent = settings.rounds;
+        updateDisplay(0);
+    }
+
+    function resetTimer() {
+        clearInterval(interval);
+        isRunning = false;
+        currentRound = 0;
+        updateSettings();
+        updateDisplay(0);
+        updateStatus('Pronto', 'status-prep');
+        statRoundsCurrent.textContent = 0;
+        
+        startBtn.textContent = 'Iniciar';
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+        
+        timerDisplay.classList.remove('timer-work-blink', 'timer-rest-blink');
+    }
+
+    function startTimer() {
+        if (isRunning) return;
+        initAudio(); 
+        isRunning = true;
+        startBtn.textContent = 'Continuar';
+        startBtn.disabled = true;
+        pauseBtn.disabled = false;
+        
+        if (currentRound === 0) {
+            currentState = STATES.PREP;
+            totalTime = settings.prep;
+            currentTime = totalTime;
+            updateStatus('Preparar', 'status-prep');
+            if (currentTime > 0) playBeep(440, 300);
+        }
+
+        interval = setInterval(tick, 1000);
+    }
+
+    function pauseTimer() {
+        clearInterval(interval);
+        isRunning = false;
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+    }
+
+    function tick() {
+        if (currentTime <= 0) {
+            nextState();
+        } else {
+            currentTime--;
+            if (currentTime <= 3 && currentTime > 0) {
+                playBeep(220, 100);
+            }
+            updateDisplay(currentTime);
+        }
+    }
+
+    function nextState() {
+        switch (currentState) {
+            case STATES.PREP:
+                currentRound = 1;
+                currentState = STATES.WORK;
+                totalTime = settings.work;
+                updateStats();
+                updateStatus('Treinar', 'status-work');
+                playBeep(660, 500); 
+                break;
+            case STATES.WORK:
+                if (currentRound < settings.rounds) {
+                    currentState = STATES.REST;
+                    totalTime = settings.rest;
+                    updateStatus('Descansar', 'status-rest');
+                    playBeep(550, 500); 
+                } else {
+                    currentState = STATES.FINISHED;
+                    clearInterval(interval);
+                    isRunning = false;
+                    updateDisplay(0);
+                    updateStatus('Treino Concluído!', 'status-finish');
+                    startBtn.disabled = true;
+                    pauseBtn.disabled = true;
+                    resetBtn.disabled = false;
+                    playBeep(770, 1000);
+                }
+                break;
+            case STATES.REST:
+                currentRound++;
+                currentState = STATES.WORK;
+                totalTime = settings.work;
+                updateStats();
+                updateStatus('Treinar', 'status-work');
+                playBeep(660, 500);
+                break;
+        }
+
+        if (currentState !== STATES.FINISHED) {
+            currentTime = totalTime;
+            updateDisplay(currentTime);
+        }
+    }
+
+    function updateDisplay(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        const formattedTime = `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        timerDisplay.textContent = formattedTime;
+    }
+
+    function updateStatus(text, className) {
+        timerStatus.textContent = text;
+        timerStatus.className = `timer-status ${className}`;
+        timerDisplay.className = `timer-display`;
+        if (className === 'status-work') {
+            timerDisplay.classList.add('timer-work-blink');
+        } else if (className === 'status-rest') {
+            timerDisplay.classList.add('timer-rest-blink');
+        }
+    }
+
+    function updateStats() {
+        statRoundsCurrent.textContent = currentRound;
+    }
+
+    // Event Listeners
+    startBtn.addEventListener('click', startTimer);
+    pauseBtn.addEventListener('click', pauseTimer);
+    resetBtn.addEventListener('click', resetTimer);
+
+    // Event listeners para atualizar as configurações ao mudar os inputs
+    const selects = document.querySelectorAll('select');
+    selects.forEach(select => {
+        select.addEventListener('change', updateSettings);
+    });
+
+    // Inicialização
+    updateSettings();
+</script>
+
+</body>
+</html>
